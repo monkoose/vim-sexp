@@ -245,6 +245,10 @@ function! s:sexp_create_mappings()
     endif
 endfunction
 
+function! g:SexpCreateMappings()
+  call s:sexp_create_mappings()
+endfunction
+
 """ Text Object Selections {{{1
 
 " Current list (compound FORM)

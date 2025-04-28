@@ -56,9 +56,6 @@ let s:pairs = {
     \ '"': '"'
     \ }
 
-" Patch 7.3.590 introduced the ability to set visual marks with setpos()
-let s:can_set_visual_marks = v:version > 703 || (v:version == 703 && has('patch590'))
-
 " Return macro characters for current filetype. Defaults to Scheme's macro
 " characters if 'lisp' is set, invalid characters otherwise.
 function! s:macro_chars()
@@ -1130,28 +1127,10 @@ function! s:get_visual_marks()
     return [getpos("'<"), getpos("'>")]
 endfunction
 
-if s:can_set_visual_marks
-    " Set visual marks to [start, end]
-    function! s:set_visual_marks(marks)
-        call setpos("'<", a:marks[0])
-        call setpos("'>", a:marks[1])
-    endfunction
-else
-    " Before 7.3.590, the only way to set visual marks was to actually enter
-    " and exit visual mode. The method using setpos() above is preferred
-    " because there are no side effects apart from setting the marks.
-    function! s:set_visual_marks(marks)
-        let cursor = getpos('.')
-
-        if mode() ==? 'v' | execute "normal! \<Esc>" | endif
-        call s:setcursor(a:marks[0])
-        normal! v
-        call s:setcursor(a:marks[1])
-        execute "normal! \<Esc>"
-
-        call s:setcursor(cursor)
-    endfunction
-endif
+function! s:set_visual_marks(marks)
+    call setpos("'<", a:marks[0])
+    call setpos("'>", a:marks[1])
+endfunction
 
 " Set visual marks to the positions of the nearest paired brackets. Offset is
 " the number of columns inwards from the brackets to set the marks.
@@ -1602,7 +1581,7 @@ function! s:swap_current_selection(mode, next, pairwise)
     " Record the sibling element
     call s:setcursor(amarks[!!a:next])
     call s:set_marks_around_adjacent_element('n', a:next)
-    if a:pairwise && s:can_set_visual_marks
+    if a:pairwise
         let mark = a:next ? "'>" : "'<"
         call s:setcursor(getpos(mark))
         call setpos(mark, s:nearest_element_terminal(a:next, a:next))

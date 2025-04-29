@@ -1165,64 +1165,64 @@ function! s:InsideString( ... )
     return s:SynIDMatch( s:inside_string_regex, l, c, 0 )
 endfunction
 
-" Is the current top level form balanced, i.e all opening delimiters
-" have a matching closing delimiter
-function! s:IsBalanced()
-    let l = line( '.' )
-    let c =  col( '.' )
-    let line = getline( '.' )
-    if c > len(line)
-        let c = len(line)
-    endif
-    let matchb = max( [l-g:paredit_matchlines, 1] )
-    let matchf = min( [l+g:paredit_matchlines, line('$')] )
-    if line[c-1] == '('
-        let p1 = searchpair( '(', '', ')', 'brnmWc', 's:SkipExpr()', matchb )
-        let p2 = searchpair( '(', '', ')',  'rnmW' , 's:SkipExpr()', matchf )
-    elseif line[c-1] == ')'
-        let p1 = searchpair( '(', '', ')', 'brnmW' , 's:SkipExpr()', matchb )
-        let p2 = searchpair( '(', '', ')',  'rnmWc', 's:SkipExpr()', matchf )
-    else
-        let p1 = searchpair( '(', '', ')', 'brnmW' , 's:SkipExpr()', matchb )
-        let p2 = searchpair( '(', '', ')',  'rnmW' , 's:SkipExpr()', matchf )
-    endif
-    if p1 != p2
-        " Number of opening and closing parens differ
-        return 0
-    endif
-
-    if &ft =~ s:fts_balancing_all_brackets
-        if line[c-1] == '['
-            let b1 = searchpair( '\[', '', '\]', 'brnmWc', 's:SkipExpr()', matchb )
-            let b2 = searchpair( '\[', '', '\]',  'rnmW' , 's:SkipExpr()', matchf )
-        elseif line[c-1] == ']'
-            let b1 = searchpair( '\[', '', '\]', 'brnmW' , 's:SkipExpr()', matchb )
-            let b2 = searchpair( '\[', '', '\]',  'rnmWc', 's:SkipExpr()', matchf )
-        else
-            let b1 = searchpair( '\[', '', '\]', 'brnmW' , 's:SkipExpr()', matchb )
-            let b2 = searchpair( '\[', '', '\]',  'rnmW' , 's:SkipExpr()', matchf )
-        endif
-        if b1 != b2
-            " Number of opening and closing brackets differ
-            return 0
-        endif
-        if line[c-1] == '{'
-            let b1 = searchpair( '{', '', '}', 'brnmWc', 's:SkipExpr()', matchb )
-            let b2 = searchpair( '{', '', '}',  'rnmW' , 's:SkipExpr()', matchf )
-        elseif line[c-1] == '}'
-            let b1 = searchpair( '{', '', '}', 'brnmW' , 's:SkipExpr()', matchb )
-            let b2 = searchpair( '{', '', '}',  'rnmWc', 's:SkipExpr()', matchf )
-        else
-            let b1 = searchpair( '{', '', '}', 'brnmW' , 's:SkipExpr()', matchb )
-            let b2 = searchpair( '{', '', '}',  'rnmW' , 's:SkipExpr()', matchf )
-        endif
-        if b1 != b2
-            " Number of opening and closing curly braces differ
-            return 0
-        endif
-    endif
-    return 1
-endfunction
+"" Is the current top level form balanced, i.e all opening delimiters
+"" have a matching closing delimiter
+"function! s:IsBalanced()
+"    let l = line( '.' )
+"    let c =  col( '.' )
+"    let line = getline( '.' )
+"    if c > len(line)
+"        let c = len(line)
+"    endif
+"    let matchb = max( [l-g:paredit_matchlines, 1] )
+"    let matchf = min( [l+g:paredit_matchlines, line('$')] )
+"    if line[c-1] == '('
+"        let p1 = searchpair( '(', '', ')', 'brnmWc', 's:SkipExpr()', matchb )
+"        let p2 = searchpair( '(', '', ')',  'rnmW' , 's:SkipExpr()', matchf )
+"    elseif line[c-1] == ')'
+"        let p1 = searchpair( '(', '', ')', 'brnmW' , 's:SkipExpr()', matchb )
+"        let p2 = searchpair( '(', '', ')',  'rnmWc', 's:SkipExpr()', matchf )
+"    else
+"        let p1 = searchpair( '(', '', ')', 'brnmW' , 's:SkipExpr()', matchb )
+"        let p2 = searchpair( '(', '', ')',  'rnmW' , 's:SkipExpr()', matchf )
+"    endif
+"    if p1 != p2
+"        " Number of opening and closing parens differ
+"        return 0
+"    endif
+"
+"    if &ft =~ s:fts_balancing_all_brackets
+"        if line[c-1] == '['
+"            let b1 = searchpair( '\[', '', '\]', 'brnmWc', 's:SkipExpr()', matchb )
+"            let b2 = searchpair( '\[', '', '\]',  'rnmW' , 's:SkipExpr()', matchf )
+"        elseif line[c-1] == ']'
+"            let b1 = searchpair( '\[', '', '\]', 'brnmW' , 's:SkipExpr()', matchb )
+"            let b2 = searchpair( '\[', '', '\]',  'rnmWc', 's:SkipExpr()', matchf )
+"        else
+"            let b1 = searchpair( '\[', '', '\]', 'brnmW' , 's:SkipExpr()', matchb )
+"            let b2 = searchpair( '\[', '', '\]',  'rnmW' , 's:SkipExpr()', matchf )
+"        endif
+"        if b1 != b2
+"            " Number of opening and closing brackets differ
+"            return 0
+"        endif
+"        if line[c-1] == '{'
+"            let b1 = searchpair( '{', '', '}', 'brnmWc', 's:SkipExpr()', matchb )
+"            let b2 = searchpair( '{', '', '}',  'rnmW' , 's:SkipExpr()', matchf )
+"        elseif line[c-1] == '}'
+"            let b1 = searchpair( '{', '', '}', 'brnmW' , 's:SkipExpr()', matchb )
+"            let b2 = searchpair( '{', '', '}',  'rnmWc', 's:SkipExpr()', matchf )
+"        else
+"            let b1 = searchpair( '{', '', '}', 'brnmW' , 's:SkipExpr()', matchb )
+"            let b2 = searchpair( '{', '', '}',  'rnmW' , 's:SkipExpr()', matchf )
+"        endif
+"        if b1 != b2
+"            " Number of opening and closing curly braces differ
+"            return 0
+"        endif
+"    endif
+"    return 1
+"endfunction
 
 " Filter out all non-matched characters from the region
 function! s:GetMatchedChars( lines, start_in_string, start_in_comment )
@@ -1445,7 +1445,7 @@ endfunction
 
 " Insert opening type of a paired character, like ( or [.
 function! PareditInsertOpening( open, close )
-    if !g:paredit_mode || s:InsideComment() || s:InsideString() || !s:IsBalanced()
+    if !g:paredit_mode || s:InsideComment() || s:InsideString() || !v:lua.require'sexp'.is_balanced()
         return a:open
     endif
     let line = getline( '.' )
@@ -1500,7 +1500,7 @@ function! PareditInsertClosing( open, close )
     set ve=all
     let line = getline( '.' )
     let pos = col( '.' ) - 1
-    if !g:paredit_mode || s:InsideComment() || s:InsideString() || !s:IsBalanced()
+    if !g:paredit_mode || s:InsideComment() || s:InsideString() || !v:lua.require'sexp'.is_balanced()
         call setline( line('.'), line[0 : pos-1] . a:close . line[pos : -1] )
         normal! l
         let &ve = save_ve
@@ -1598,7 +1598,7 @@ function! PareditEnter()
     else
         let line = getline( '.' )
         let pos = col( '.' ) - 1
-        if g:paredit_electric_return && pos > 0 && line[pos] =~ b:any_closing_char && !s:InsideString() && s:IsBalanced()
+        if g:paredit_electric_return && pos > 0 && line[pos] =~ b:any_closing_char && !s:InsideString() && v:lua.require'sexp'.is_balanced()
             " Electric Return
             return "\<CR>\<Up>\<End>\<CR>"
         else
@@ -1629,7 +1629,7 @@ function! PareditBackspace()
     elseif line[pos-1] !~ b:any_matched_char
         " Deleting a non-special character
         return "\<BS>"
-    elseif line[pos-1] != '"' && !s:IsBalanced()
+    elseif line[pos-1] != '"' && !v:lua.require'sexp'.is_balanced()
         " Current top-form is unbalanced, can't retain paredit mode
         return "\<BS>"
     endif
@@ -1661,7 +1661,7 @@ function! PareditDel()
     elseif line[pos] !~ b:any_matched_char
         " Erasing a non-special character
         return "\<Del>"
-    elseif line[pos] != '"' && !s:IsBalanced()
+    elseif line[pos] != '"' && !v:lua.require'sexp'.is_balanced()
         " Current top-form is unbalanced, can't retain paredit mode
         return "\<Del>"
     elseif pos == 0
@@ -1817,7 +1817,7 @@ endfunction
 
 " Forward erasing a character in normal mode
 function! PareditEraseFwd()
-    if !g:paredit_mode || !s:IsBalanced()
+    if !g:paredit_mode || !v:lua.require'sexp'.is_balanced()
         if v:count > 0
             silent execute 'normal! ' . v:count . 'x'
         else
@@ -1832,7 +1832,7 @@ endfunction
 
 " Backward erasing a character in normal mode
 function! PareditEraseBck()
-    if !g:paredit_mode || !s:IsBalanced()
+    if !g:paredit_mode || !v:lua.require'sexp'.is_balanced()
         if v:count > 0
             silent execute 'normal! ' . v:count . 'X'
         else

@@ -103,14 +103,12 @@ endfunction
 " a good argument for why this is not a good tradeoff, contact me.
 "
 " Accepts alternate beginning and ending patterns as optional parameters.
-function! s:nearest_bracket(closing, ...)
+function! s:nearest_bracket(closing, open = s:opening_bracket, close = s:closing_bracket)
     let flags = a:closing ? 'nW' : 'bnW'
     let stopline = g:sexp_maxlines > 0
                    \ ? max([1, line('.') + ((a:closing ? 1 : -1) * g:sexp_maxlines)])
                    \ : 0
-    let open = a:0 ? a:1 : s:opening_bracket
-    let close = a:0 ? a:2 : s:closing_bracket
-    let [line, col] = searchpairpos(open, '', close, flags, s:match_ignored_region_fn, stopline)
+    let [line, col] = searchpairpos(a:open, '', a:close, flags, s:match_ignored_region_fn, stopline)
     return line > 0 ? [0, line, col, 0] : [0, 0, 0, 0]
 endfunction
 
@@ -454,10 +452,9 @@ endfunction
 
 " Return case insensitive match of the syntax group at position with pat.
 "
-" Version 7.2.446 introduced synstack(), which shows the entire stack of
-" syntax groups for a given position. It also shows the syntax groups of the
-" position under the cursor, even if on a blank line, unlike synIDattr, which
-" returns 0 on a blank line.
+" synstack() shows the entire stack of syntax groups for a given position.
+" It also shows the syntax groups of the position under the cursor, even if
+" on a blank line, unlike synIDattr, which returns 0 on a blank line.
 "
 " This also solves the problem of "contained" syntax groups. For example,
 " a syntax file or colorscheme may define custom groups like todo items or
@@ -465,21 +462,11 @@ endfunction
 " will not match 'comment', even though they are semantically still comments.
 " If we know the underlying syntax group name however, we will be able to
 " successfully match it.
-"
-" Instead of requiring that synstack() exist, we will simply use synIDattr in
-" that case, even though it will return false values for empty lines within
-" strings, etc.
-if exists('*synstack')
-    function! s:syntax_match(pat, line, col)
-        let stack = synstack(a:line, a:col)
-        return (synIDattr(get(stack, -1, ''), 'name') =~? a:pat) ||
-             \ (synIDattr(get(stack, -2, ''), 'name') =~? a:pat)
-    endfunction
-else
-    function! s:syntax_match(pat, line, col)
-        return synIDattr(synID(a:line, a:col, 0), 'name') =~? a:pat
-    endfunction
-endif
+function! s:syntax_match(pat, line, col)
+    let stack = synstack(a:line, a:col)
+    return (synIDattr(get(stack, -1, ''), 'name') =~? a:pat) ||
+            \ (synIDattr(get(stack, -2, ''), 'name') =~? a:pat)
+endfunction
 
 " Return start of leading (0) or end of trailing (1) whitespace from pos.
 " Returns pos if no such whitespace exists.

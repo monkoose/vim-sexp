@@ -2257,34 +2257,34 @@ function! sexp#quote_insertion(quote)
     endif
 endfunction
 
-" Return keys to be inserted when deleting backward:
+"" Return keys to be inserted when deleting backward:
+""
+""   * Delete adjacent double quotes when previous position is in a string,
+""     unless the first quote is preceded by another quote or a backslash
+""   * Delete adjacent paired brackets, unless cursor is in s:ignored_region or
+""     preceded by a single backslash
+""   * Normal backspace otherwise
+""
+"function! sexp#backspace_insertion()
+"    let [_b, line, col, _o] = getpos('.')
+"    let curline = getline(line)
+"    let cur = curline[col - 1]
+"    let prev = curline[col - 2]
+"    let pprev = curline[col - 3]
+"    let ppprev = curline[col - 4]
+"    let escaped = pprev ==# '\' && ppprev !=# '\'
 "
-"   * Delete adjacent double quotes when previous position is in a string,
-"     unless the first quote is preceded by another quote or a backslash
-"   * Delete adjacent paired brackets, unless cursor is in s:ignored_region or
-"     preceded by a single backslash
-"   * Normal backspace otherwise
-"
-function! sexp#backspace_insertion()
-    let [_b, line, col, _o] = getpos('.')
-    let curline = getline(line)
-    let cur = curline[col - 1]
-    let prev = curline[col - 2]
-    let pprev = curline[col - 3]
-    let ppprev = curline[col - 4]
-    let escaped = pprev ==# '\' && ppprev !=# '\'
-
-    if prev ==# '"' && cur ==# '"'
-        \ && s:syntax_match(s:string_region, line, col)
-        \ && !escaped
-        \ && pprev !~# '"'
-        return "\<BS>\<Del>"
-    elseif !s:syntax_match(s:ignored_region, line, col)
-        \ && !escaped
-        \ && prev =~# s:opening_bracket
-        \ && cur ==# s:pairs[prev]
-        return "\<BS>\<Del>"
-    else
-        return "\<BS>"
-    endif
-endfunction
+"    if prev ==# '"' && cur ==# '"'
+"        \ && s:syntax_match(s:string_region, line, col)
+"        \ && !escaped
+"        \ && pprev !~# '"'
+"        return "\<BS>\<Del>"
+"    elseif !s:syntax_match(s:ignored_region, line, col)
+"        \ && !escaped
+"        \ && prev =~# s:opening_bracket
+"        \ && cur ==# s:pairs[prev]
+"        return "\<BS>\<Del>"
+"    else
+"        return "\<BS>"
+"    endif
+"endfunction

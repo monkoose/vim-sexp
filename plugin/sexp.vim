@@ -233,16 +233,16 @@ function! s:sexp_create_mappings()
         endif
     endfor
 
-    if g:sexp_enable_insert_mode_mappings
-        imap <silent><buffer> (    <Plug>(sexp_insert_opening_round)
-        imap <silent><buffer> [    <Plug>(sexp_insert_opening_square)
-        imap <silent><buffer> {    <Plug>(sexp_insert_opening_curly)
-        imap <silent><buffer> )    <Plug>(sexp_insert_closing_round)
-        imap <silent><buffer> ]    <Plug>(sexp_insert_closing_square)
-        imap <silent><buffer> }    <Plug>(sexp_insert_closing_curly)
-        imap <silent><buffer> "    <Plug>(sexp_insert_double_quote)
-        imap <silent><buffer> <BS> <Plug>(sexp_insert_backspace)
-    endif
+    "if g:sexp_enable_insert_mode_mappings
+    "    imap <silent><buffer> (    <Plug>(sexp_insert_opening_round)
+    "    imap <silent><buffer> [    <Plug>(sexp_insert_opening_square)
+    "    imap <silent><buffer> {    <Plug>(sexp_insert_opening_curly)
+    "    imap <silent><buffer> )    <Plug>(sexp_insert_closing_round)
+    "    imap <silent><buffer> ]    <Plug>(sexp_insert_closing_square)
+    "    imap <silent><buffer> }    <Plug>(sexp_insert_closing_curly)
+    "    imap <silent><buffer> "    <Plug>(sexp_insert_double_quote)
+    "    imap <silent><buffer> <BS> <Plug>(sexp_insert_backspace)
+    "endif
 endfunction
 
 function! g:SexpCreateMappings()
@@ -434,8 +434,8 @@ inoremap <silent><expr> <Plug>(sexp_insert_closing_curly)  sexp#closing_insertio
 " Insert double quote
 inoremap <silent><expr> <Plug>(sexp_insert_double_quote) sexp#quote_insertion('"')
 
-" Delete paired delimiters
-inoremap <silent><expr> <Plug>(sexp_insert_backspace) sexp#backspace_insertion()
+"" Delete paired delimiters
+"inoremap <silent><expr> <Plug>(sexp_insert_backspace) sexp#backspace_insertion()
 
 """ Cleanup {{{1
 

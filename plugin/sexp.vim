@@ -652,8 +652,8 @@ function! PareditMapKeys()
     inoremap <buffer> <expr>   (            PareditInsertOpening('(',')')
     inoremap <buffer> <silent> )            <C-R>=PareditInsertClosing('(',')')<CR>
     inoremap <buffer> <expr>   "            PareditInsertQuotes()
-    inoremap <buffer> <expr>   <BS>         PareditBackspace(0)
-    inoremap <buffer> <expr>   <C-h>        PareditBackspace(0)
+    inoremap <buffer> <expr>   <BS>         PareditBackspace()
+    inoremap <buffer> <expr>   <C-h>        PareditBackspace()
     inoremap <buffer> <expr>   <Del>        PareditDel()
     "if &ft =~ s:fts_balancing_all_brackets && g:paredit_smartjump
     "    noremap  <buffer> <silent> (            :<C-U>call PareditSmartJumpOpening(0)<CR>

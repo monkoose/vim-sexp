@@ -38,7 +38,7 @@ end
 ---@param col integer 0-based column number
 ---@return integer[]
 local function last3_synids(line, col)
-   local synstack = fn.synstack(line, col + 1)
+   local synstack = fn.synstack(line, col)
    local len = #synstack
    -- last three ids should be more than enough to determine
    -- if syntax under the cursor belongs to some syntax group
@@ -51,22 +51,45 @@ local function last3_synids(line, col)
    }
 end
 
----@param regex vim.regex
----@param line integer
----@param col integer
----@param match_eol boolean
+---Returns true when `str` contains any element from the `tbl`
+---@param str string
+---@param tbl string[]
 ---@return boolean
-function M.synname_match(regex, line, col, match_eol)
-   if match_eol and col >= #fn.getline(line) then
-      col = col - 1
-   end
-
-   for _, synid in ipairs(last3_synids(line, col)) do
-      local synname = get_synname(synid)
-      if regex:match_str(synname) then
+local function str_contains_any(str, tbl)
+   for _, pattern in ipairs(tbl) do
+      if str:find(pattern, 1, true) then
          return true
       end
    end
+   return false
+end
+
+-- TODO: clojureComment as in paredit
+local comments = { "comment" }
+-- TODO: add clojure `clojureRegexp` and `clojurePatern` to string_pattern
+local strings = { "string" }
+local strings_and_comments = { "comment", "string" }
+
+-- TODO: add treesitter check
+---@param pattern string[]
+---@param line? integer # 1-based line number
+---@param col? integer # 1-based column number
+---@return boolean
+function M.inside_synname(pattern, line, col)
+   if is_syntax_off() then
+      return false
+   end
+
+   line = line or fn.line(".")
+   col = col or fn.col(".")
+
+   for _, synid in ipairs(last3_synids(line, col)) do
+      local synname = string.lower(get_synname(synid))
+      if str_contains_any(synname, pattern) then
+         return true
+      end
+   end
+
    return false
 end
 
@@ -177,11 +200,13 @@ function M.s_key()
    end
 
    local linestr = api.nvim_get_current_line()
-   local col = fn.col(".")
-   if char_at_index(linestr, col) == ")" then
+   local line, col = unpack(api.nvim_win_get_cursor(0))
+   local inc_col = col + 1
+
+   if char_at_index(linestr, inc_col) == ")" then
       sexp_key = "s_key"
 
-      if col > 1 and char_at_index(linestr, col - 1) == "(" then
+      if col > 0 and char_at_index(linestr, col) == "(" then
          api.nvim_feedkeys(s_and_bs, "ntx", false)
          api.nvim_create_autocmd("InsertEnter", {
             group = augroup,
@@ -217,7 +242,7 @@ local function dot_repeat()
    end
 end
 
-vim.keymap.set("n", "s", M.s_key, { silent = true })
-vim.keymap.set("n", ".", dot_repeat, { silent = true })
+-- vim.keymap.set("n", "s", M.s_key, { silent = true })
+-- vim.keymap.set("n", ".", dot_repeat, { silent = true })
 
 return M

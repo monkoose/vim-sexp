@@ -153,26 +153,14 @@ function! s:defplug(flags, mapmode, name, ...)
     elseif opmode
         execute prefix . ' \| '
                 \ . 'if v:operator ==? "c" \| '
-                \ . '  call <SID>repeat_set(v:operator . "\<Plug>(' . a:name . ')\<lt>C-r>.\<lt>C-Bslash>\<lt>C-n>", b:sexp_count) \| '
+                \ . '  call repeat#set(v:operator . "\<Plug>(' . a:name . ')\<lt>C-r>.\<lt>C-Bslash>\<lt>C-n>", b:sexp_count) \| '
                 \ . 'else \| '
-                \ . '  call <SID>repeat_set(v:operator . "\<Plug>(' . a:name . ')", b:sexp_count) \| '
+                \ . '  call repeat#set(v:operator . "\<Plug>(' . a:name . ')", b:sexp_count) \| '
                 \ . 'endif<CR>'
     " Expression, repeating, non-operator-pending mode
     else
-        execute prefix . ' \| call <SID>repeat_set("\<Plug>(' . a:name . ')", b:sexp_count)<CR>'
+        execute prefix . ' \| call repeat#set("\<Plug>(' . a:name . ')", b:sexp_count)<CR>'
     endif
-endfunction
-
-" Calls repeat#set() and registers a one-time CursorMoved handler to correctly
-" set the value of g:repeat_tick.
-"
-" cf. https://github.com/tpope/vim-repeat/issues/8#issuecomment-13951082
-function! s:repeat_set(buf, count)
-    call repeat#set(a:buf, a:count)
-    augroup sexp_repeat
-        autocmd!
-        autocmd CursorMoved <buffer> let g:repeat_tick = b:changedtick | autocmd! sexp_repeat
-    augroup END
 endfunction
 
 " Bind <Plug> mappings in current buffer to values in g:sexp_mappings or

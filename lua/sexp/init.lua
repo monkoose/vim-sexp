@@ -75,7 +75,7 @@ local strings_and_comments = { "comment", "string" }
 ---@param line? integer # 1-based line number
 ---@param col? integer # 1-based column number
 ---@return boolean
-function M.inside_synname(pattern, line, col)
+local function inside_synname(pattern, line, col)
    if is_syntax_off() then
       return false
    end
@@ -192,45 +192,108 @@ local changedtick
 
 local augroup = vim.api.nvim_create_augroup("sexp_augroup", {})
 
+local function update_changedtick_once()
+   api.nvim_create_autocmd("ModeChanged", {
+      group = augroup,
+      pattern = "i*:[^i]*",
+      callback = function()
+         changedtick = vim.b.changedtick
+         dot_reg = fn.getreg(".")
+      end,
+      once = true,
+   })
+end
+
+-- TODO: fully check for all backslashes
+local function escaped_by_backslash(str, index)
+   local bs = [[\]]
+   if
+      char_at_index(str, index) == bs
+      and (
+         char_at_index(str, index - 1) ~= bs
+         or (char_at_index(str, index - 1) == bs and char_at_index(str, index - 2) == bs)
+      )
+   then
+   end
+end
+
+-- api.nvim_feedkeys(s_and_bs, "ntx", false)
+-- api.nvim_create_autocmd("InsertEnter", {
+--    group = augroup,
+--    callback = function()
+--       vim.cmd.undojoin()
+--    end,
+--    once = true,
+-- })
 local s_and_bs = api.nvim_replace_termcodes([[s<BS>]], true, false, true)
 local s_and_del = api.nvim_replace_termcodes([[s<Del>]], true, false, true)
+
 function M.s_key()
+   sexp_key = "s_key"
+   local count = vim.v.count1
+
    if not (vim.g.paredit_mode and M.is_balanced()) then
-      api.nvim_feedkeys(vim.v.count1 .. "s", "nt", false)
+      api.nvim_feedkeys(count .. "s", "nt", false)
+      update_changedtick_once()
+      return
    end
 
    local linestr = api.nvim_get_current_line()
    local line, col = unpack(api.nvim_win_get_cursor(0))
    local inc_col = col + 1
 
-   if char_at_index(linestr, inc_col) == ")" then
-      sexp_key = "s_key"
+   if inside_synname(comments, line, inc_col) then
+      api.nvim_feedkeys(count .. "s", "nt", false)
+      update_changedtick_once()
+      return
+   end
 
-      if col > 0 and char_at_index(linestr, col) == "(" then
-         api.nvim_feedkeys(s_and_bs, "ntx", false)
-         api.nvim_create_autocmd("InsertEnter", {
-            group = augroup,
-            callback = function()
-               vim.cmd.undojoin()
-            end,
-            once = true,
-         })
+   local prev_char = char_at_index(linestr, col)
+   local cur_char = char_at_index(linestr, inc_col)
+   local next_char = char_at_index(linestr, inc_col + 1)
+   local i = 2
+   local any_match_char = vim.b.any_match_char_
+   local backslash = [[\]]
+
+   while count > 0 do
+      if inside_synname(comments, line, inc_col) then
+         api.nvim_feedkeys(count .. "x", "n", false)
+         break
+      elseif any_match_char:find(cur_char, 1, true) and escaped_by_backslash(linestr, col) then
+         api.nvim_feedkeys("Xx", "n", false)
+         cur_char = next_char
+         next_char = 
+      elseif
+         cur_char == backslash
+         and any_match_char:find(next_char, 1, true)
+         and not escaped_by_backslash(linestr, col)
+      then
+         api.nvim_feedkeys("xx", "n", false)
+         count = count - 1
+      elseif inside_synname(strings, line, inc_col) then
+         -- We already checked for escaped double quote
+
+         if cur_char == '"' then
+            if prev_char == '"' then
+               api.nvim_feedkeys("Xx", "n", false)
+            elseif next_char == '"' then
+               api.nvim_feedkeys("xx", "n", false)
+               count = count - 1
+            else
+               api.nvim_feedkeys("l", "n", false)
+            end
+         else
+            api.nvim_feedkeys("x", "n", false)
+         end
       end
 
-      api.nvim_feedkeys("a", "nt", false)
-
-      api.nvim_create_autocmd("ModeChanged", {
-         group = augroup,
-         pattern = "i*:[^i]*",
-         callback = function()
-            changedtick = vim.b.changedtick
-            dot_reg = fn.getreg(".")
-         end,
-         once = true,
-      })
-   else
-      api.nvim_feedkeys(vim.v.count1 .. "s", "nt", false)
+      prev_char = cur_char
+      cur_char = next_char
+      count = count - 1
+      next_char = char_at_index(linestr, inc_col + 1 + vim.v.count1 - count)
    end
+   api.nvim_feedkeys("a", "nt", false)
+   update_changedtick_once()
 end
 
 local function dot_repeat()

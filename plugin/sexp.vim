@@ -802,6 +802,7 @@ function! PareditInitBuffer()
     " Also define regular expressions to identify special characters used by paredit
     if &ft =~ s:fts_balancing_all_brackets
         let b:any_matched_char   = '(\|)\|\[\|\]\|{\|}\|\"'
+        let b:any_matched_char_   = '()[]{}"'
         let b:any_matched_pair   = '()\|\[\]\|{}\|\"\"'
         let b:any_opening_char   = '(\|\[\|{'
         let b:any_closing_char   = ')\|\]\|}'
@@ -810,6 +811,7 @@ function! PareditInitBuffer()
         let b:any_wsclose_char   = '\s\|)\|\]\|}'
     else
         let b:any_matched_char   = '(\|)\|\"'
+        let b:any_matched_char_   = '()"'
         let b:any_matched_pair   = '()\|\"\"'
         let b:any_opening_char   = '('
         let b:any_closing_char   = ')'

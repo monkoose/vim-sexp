@@ -262,7 +262,6 @@ function M.s_key()
       elseif any_match_char:find(cur_char, 1, true) and escaped_by_backslash(linestr, col) then
          api.nvim_feedkeys("Xx", "n", false)
          cur_char = next_char
-         next_char = 
       elseif
          cur_char == backslash
          and any_match_char:find(next_char, 1, true)

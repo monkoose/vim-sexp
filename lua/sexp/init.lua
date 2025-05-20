@@ -97,7 +97,7 @@ end
 ---@return boolean
 function M.skip_expr()
    local line, col = unpack(api.nvim_win_get_cursor(0))
-   if inside_synname(strings_and_comments, line, col) then
+   if inside_synname(strings_and_comments, line, col + 1) then
       return true
    end
 
@@ -119,6 +119,7 @@ local function check_unbalance(linestr, col, open, close, stopb, stopf, openpat,
    local p1, p2
    openpat = openpat or open
    closepat = closepat or close
+
    if char == open then
       p1 = fn.searchpair(openpat, "", closepat, "brnmWc", skip_fn, stopb)
       p2 = fn.searchpair(openpat, "", closepat, "rnmW", skip_fn, stopf)

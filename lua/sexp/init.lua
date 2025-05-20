@@ -93,22 +93,19 @@ local function inside_synname(pattern, line, col)
    return false
 end
 
-local skip_expr_regex = vim.regex("\\cstring\\|comment")
 ---Expression used to check whether we should skip a match with searchpair()
 ---@return boolean
 function M.skip_expr()
    local line, col = unpack(api.nvim_win_get_cursor(0))
-   local synname = get_synname(fn.synID(line, col + 1, 0))
-   -- Skip inside strings and comments
-   if skip_expr_regex:match_str(synname) then
+   if inside_synname(strings_and_comments, line, col) then
       return true
    end
 
+   local backslash = 92
    local linestr = api.nvim_get_current_line()
-   if linestr:sub(col, col) == "\\" then
-      col = math.max(0, col - 1)
+   if linestr:byte(col) == backslash then
       -- Skip parens escaped by `\`
-      if linestr:sub(col, col) ~= "\\" then
+      if col == 0 or linestr:byte(col - 1) ~= backslash then
          return true
       end
    end
@@ -157,7 +154,7 @@ function M.reindent_form(linenr)
 end
 
 ---TODO: change this to actual variable
-local fts_balancing_all_brackets = vim.regex("\\cfennel")
+local fts_balancing_all_brackets = { "fennel" }
 
 function M.is_balanced()
    local line, col = unpack(api.nvim_win_get_cursor(0))
@@ -174,7 +171,7 @@ function M.is_balanced()
    end
 
    local ft = api.nvim_get_option_value("filetype", { scope = "local" })
-   if fts_balancing_all_brackets:match_str(ft) then
+   if str_contains_any(ft, fts_balancing_all_brackets) then
       if check_unbalance(linestr, col, "[", "]", stopb, stopf, "\\[", "\\]") then
          return false
       end
@@ -206,13 +203,10 @@ end
 
 -- TODO: fully check for all backslashes
 local function escaped_by_backslash(str, index)
-   local bs = [[\]]
+   local bs = 92
    if
-      char_at_index(str, index) == bs
-      and (
-         char_at_index(str, index - 1) ~= bs
-         or (char_at_index(str, index - 1) == bs and char_at_index(str, index - 2) == bs)
-      )
+      str:byte(index) == bs
+      and (str:byte(index - 1) ~= bs or (str:byte(index - 1) == bs and str:byte(index - 2) ~= bs))
    then
    end
 end
@@ -225,8 +219,8 @@ end
 --    end,
 --    once = true,
 -- })
-local s_and_bs = api.nvim_replace_termcodes([[s<BS>]], true, false, true)
-local s_and_del = api.nvim_replace_termcodes([[s<Del>]], true, false, true)
+-- local s_and_bs = api.nvim_replace_termcodes([[s<BS>]], true, false, true)
+-- local s_and_del = api.nvim_replace_termcodes([[s<Del>]], true, false, true)
 
 function M.s_key()
    sexp_key = "s_key"

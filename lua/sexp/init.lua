@@ -83,8 +83,9 @@ local function inside_synname(pattern, line, col)
    line = line or fn.line(".")
    col = col or fn.col(".")
 
+   local lower = string.lower
    for _, synid in ipairs(last3_synids(line, col)) do
-      local synname = string.lower(get_synname(synid))
+      local synname = lower(get_synname(synid))
       if str_contains_any(synname, pattern) then
          return true
       end

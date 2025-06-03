@@ -86,8 +86,8 @@ endfunction
 "
 " This has since been fixed in 7.3.779, but this function remains for
 " convenience.
-function! s:findpos(pattern, next, ...)
-    return searchpos(a:pattern, a:next ? 'nW' : 'bnW', a:0 ? a:1 : 0)
+function! s:findpos(pattern, next, stopline = 0)
+    return searchpos(a:pattern, a:next ? 'nW' : 'bnW', a:stopline)
 endfunction
 
 " Position of nearest paired bracket: 0 for opening, 1 for closing. Returns
@@ -1327,16 +1327,16 @@ endfunction
 " Enter characterwise visual mode with current visual marks, unless '< is
 " invalid and mode equals 'o'.
 " Optional Arg:
-"   a:1 - where to leave cursor after performing the visual selection:
+"   side - where to leave cursor after performing the visual selection:
 "         0=left side ('<), 1=right side ('>)
 "         Note: This arg is ignored if marks not set.
-function! s:select_current_marks(mode, ...)
+function! s:select_current_marks(mode, side = -1)
     if getpos("'<")[1] > 0
         normal! gv
         if !s:is_characterwise(visualmode())
             normal! v
         endif
-        if a:0
+        if a:side != -1
             " Caller has requested that cursor be left on particular side.
             " Caveat: We cannot rely on accurate '< and '> values from getpos
             " at this point: if the setpos() calls occur while visual mode is
@@ -1348,7 +1348,7 @@ function! s:select_current_marks(mode, ...)
             " Jump to other side to see which side we're on.
             normal! o
             let cmp = s:compare_pos(getpos('.'), pos)
-            if a:1 && cmp < 0 || !a:1 && cmp > 0
+            if a:side && cmp < 0 || !a:side && cmp > 0
                 " We were already on the desired end.
                 normal! o
             endif
@@ -1645,8 +1645,8 @@ endfunction
 " assumed to apply only to end (with start being included by default). If inc
 " arg is omitted, defaults to [1, 0]: i.e., start=inclusive, end=exclusive.
 " Cursor Note: If we move cursor, we'll leave it at start of operated range.
-function! s:yankdel_range(start, end, del, ...)
-    let inc = a:0 ? type(a:1) == 3 ? a:1 : [1, a:1] : [1, 0]
+function! s:yankdel_range(start, end, del, inc = 0)
+    let inc = type(a:inc) == v:t_list ? a:inc : [1, a:inc]
     " Make sure there's a point in continuing.
     let cmp = s:compare_pos(a:start, a:end)
     if cmp > 1 || cmp == 0 && inc != [1, 1]
@@ -1737,10 +1737,10 @@ endfu
 " before         Nonzero puts text before input pos (default after)
 " cursor_after   Nonzero leaves cursor just after put text (default at start)
 " [pos]          Location at which to put the text. Defaults to cursor pos.
-fu! s:put_at(text, before, cursor_after, ...)
+fu! s:put_at(text, before, cursor_after, pos = v:false)
     " Position defaults to cursor pos.
-    if a:0
-        call s:setcursor(a:1)
+    if a:pos isnot v:false
+        call s:setcursor(a:pos)
     endif
     let [reg_save, @a] = [@a, a:text]
     " Caveat: Vim's treatment of -1 string index doesn't obey POLS; use range.
@@ -1953,15 +1953,15 @@ endfu
 " Remove brackets from current list, placing cursor at position of deleted
 " first bracket. Takes optional count parameter, which specifies which pair of
 " ancestor brackets to remove.
-function! sexp#splice_list(...)
+function! sexp#splice_list(count = 0)
     call s:set_marks_characterwise()
 
     let marks = s:get_visual_marks()
     let cursor = getpos('.')
 
     " Climb the expression tree a:1 times
-    if a:0 && a:1 > 1
-        let idx = a:1
+    if a:count > 1
+        let idx = a:count
         let dir = getline(cursor[1])[cursor[2] - 1] =~ s:opening_bracket
         while idx > 0
             call s:move_to_nearest_bracket(dir)

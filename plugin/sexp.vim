@@ -192,7 +192,7 @@ function! s:sexp_create_mappings()
 
     for plug in ['sexp_indent',              'sexp_indent_top',
                \ 'sexp_insert_at_list_head', 'sexp_insert_at_list_tail',
-	       \ 'sexp_convolute',           'sexp_splice_list']
+               \ 'sexp_convolute',           'sexp_splice_list']
         let lhs = get(g:sexp_mappings, plug, s:sexp_mappings[plug])
         if !empty(lhs)
             execute 'nmap <silent><buffer> ' . lhs . ' <Plug>(' . plug . ')'
@@ -220,17 +220,6 @@ function! s:sexp_create_mappings()
             execute 'xmap <silent><buffer> ' . lhs . ' <Plug>(' . plug . ')'
         endif
     endfor
-
-    "if g:sexp_enable_insert_mode_mappings
-    "    imap <silent><buffer> (    <Plug>(sexp_insert_opening_round)
-    "    imap <silent><buffer> [    <Plug>(sexp_insert_opening_square)
-    "    imap <silent><buffer> {    <Plug>(sexp_insert_opening_curly)
-    "    imap <silent><buffer> )    <Plug>(sexp_insert_closing_round)
-    "    imap <silent><buffer> ]    <Plug>(sexp_insert_closing_square)
-    "    imap <silent><buffer> }    <Plug>(sexp_insert_closing_curly)
-    "    imap <silent><buffer> "    <Plug>(sexp_insert_double_quote)
-    "    imap <silent><buffer> <BS> <Plug>(sexp_insert_backspace)
-    "endif
 endfunction
 
 function! g:SexpCreateMappings()
@@ -406,24 +395,6 @@ Defplug! nnoremap sexp_capture_prev_element sexp#docount(v:count, 'sexp#stackop'
 Defplug  xnoremap sexp_capture_prev_element sexp#docount(v:count, 'sexp#stackop', 'v', 0, 1)
 Defplug! nnoremap sexp_capture_next_element sexp#docount(v:count, 'sexp#stackop', 'n', 1, 1)
 Defplug  xnoremap sexp_capture_next_element sexp#docount(v:count, 'sexp#stackop', 'v', 1, 1)
-
-""" Insert mode mappings {{{1
-
-" Insert opening delimiter
-inoremap <silent><expr> <Plug>(sexp_insert_opening_round)  sexp#opening_insertion('(')
-inoremap <silent><expr> <Plug>(sexp_insert_opening_square) sexp#opening_insertion('[')
-inoremap <silent><expr> <Plug>(sexp_insert_opening_curly)  sexp#opening_insertion('{')
-
-" Insert closing delimiter
-inoremap <silent><expr> <Plug>(sexp_insert_closing_round)  sexp#closing_insertion(')')
-inoremap <silent><expr> <Plug>(sexp_insert_closing_square) sexp#closing_insertion(']')
-inoremap <silent><expr> <Plug>(sexp_insert_closing_curly)  sexp#closing_insertion('}')
-
-" Insert double quote
-inoremap <silent><expr> <Plug>(sexp_insert_double_quote) sexp#quote_insertion('"')
-
-"" Delete paired delimiters
-"inoremap <silent><expr> <Plug>(sexp_insert_backspace) sexp#backspace_insertion()
 
 """ Cleanup {{{1
 
